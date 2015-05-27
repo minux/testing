@@ -21,7 +21,7 @@ var (
 	inited     bool
 )
 
-// Here comes the interesting part, although we define runN to
+// Here comes the interesting part, although we define _runN to
 // take *B and int as parameter, it's actually refering to
 // the method runN on *testing.B. Essentially we used our B
 // to replace testing.B. This is definitely unsafe, so we have
@@ -31,5 +31,11 @@ var (
 // convention as a func with an added parameter of type T. This
 // is true for both gc and gccgo.
 
-//go:linkname runN testing.(*B).runN
-func runN(*B, int)
+//go:linkname _runN testing.(*B).runN
+func _runN(*B, int)
+
+func runN(b *B, n int) *testing.BenchmarkResult {
+	_runN(b, n)
+	// see (*testing.B).run
+	return &testing.BenchmarkResult{b.N, b.duration, b.bytes, b.netAllocs, b.netBytes}
+}

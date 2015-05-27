@@ -47,7 +47,6 @@ func init() {
 	if !*enabled {
 		return
 	}
-	println("enabled")
 
 	// inject our test
 	*tests = append(*tests, testing.InternalTest{Name: "BenchServer", F: BenchServer})
@@ -65,7 +64,10 @@ func logf(format string, args ...interface{}) {
 }
 
 func BenchServer(t *testing.T) {
-	server := new(Server)
+	server := Server{m: make(map[string]InternalBenchmark)}
+	for _, b := range *benchmarks {
+		server.m[b.Name] = b
+	}
 	rpc.Register(server)
 
 	l, err := net.Listen("tcp", *benchServerAddr)
@@ -89,7 +91,9 @@ func BenchServer(t *testing.T) {
 }
 
 // Server is the benchmark server state.
-type Server struct{}
+type Server struct {
+	m map[string]InternalBenchmark
+}
 
 type Arg struct {
 	Name string `json:"name"`
@@ -105,6 +109,16 @@ func (s Server) List(args *Arg, reply *Reply) error {
 	for _, b := range *benchmarks {
 		reply.Names = append(reply.Names, b.Name)
 	}
+	return nil
+}
+
+func (s Server) Run(args *Arg, reply *Reply) error {
+	if _, ok := s.m[args.Name]; !ok {
+		return fmt.Errorf("no such benchmark: %s", args.Name)
+	}
+	b := &B{benchmark: s.m[args.Name]}
+	logf("Running %s with N=%d\n", args.Name, args.N)
+	reply.Result = runN(b, args.N)
 	return nil
 }
 

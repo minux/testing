@@ -20,10 +20,10 @@ var benchmarks *[]InternalBenchmark // tricky, switched type
 
 var benchmarkLock sync.Mutex
 
-// runN is copied verbatim from the Go 1.4 testing package.
+// _runN is copied verbatim from the Go 1.4 testing package ((*testing.B).runN).
 
-// runN runs a single benchmark for the specified number of iterations.
-func runN(b *B, n int) {
+// _runN runs a single benchmark for the specified number of iterations.
+func _runN(b *B, n int) {
 	// always safe, we've checked the types are identical
 	b2 := (*testing.B)(unsafe.Pointer(b))
 	benchmarkLock.Lock()
@@ -39,4 +39,10 @@ func runN(b *B, n int) {
 	b2.StopTimer()
 	b.previousN = n
 	b.previousDuration = b.duration
+}
+
+func runN(b *B, n int) *testing.BenchmarkResult {
+	_runN(b, n)
+	// see (*testing.B).run
+	return &testing.BenchmarkResult{b.N, b.duration, b.bytes, b.netAllocs, b.netBytes}
 }

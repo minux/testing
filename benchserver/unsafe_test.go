@@ -91,4 +91,10 @@ func TestB(t *testing.T) {
 	identicalTypes(t, reflect.TypeOf(B{}), reflect.TypeOf(testing.B{}))
 }
 
-func BenchmarkA(b *testing.B) {}
+var sink interface{}
+
+func BenchmarkA(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		sink = new(int)
+	}
+}

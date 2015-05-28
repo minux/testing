@@ -33,11 +33,6 @@ var (
 )
 
 func init() {
-	_ = inited                      // make sure the benchmarks variable have been initialized
-	for i, v := range *benchmarks { // only for debug
-		fmt.Printf("%d: %#v\n", i, v)
-	}
-
 	// see if server is enabled by querying os.Args
 	flagSet := flag.NewFlagSet(os.Args[0], 0)
 	flagSet.Usage = func() {}         // suppress usage message

@@ -9,6 +9,8 @@ import (
 	"net/rpc/jsonrpc"
 	"os"
 	"testing"
+
+	"github.com/minux/testing/benchserver/api"
 )
 
 // Overall plan of attack:
@@ -90,24 +92,14 @@ type Server struct {
 	m map[string]InternalBenchmark
 }
 
-type Arg struct {
-	Name string `json:"name"`
-	N    int    `json:"n"`
-}
-
-type Reply struct {
-	Result *testing.BenchmarkResult `json:"result,omitempty"`
-	Names  []string                 `json:"names,omitempty"`
-}
-
-func (s Server) List(args *Arg, reply *Reply) error {
+func (s Server) List(args *api.Arg, reply *api.Reply) error {
 	for _, b := range *benchmarks {
 		reply.Names = append(reply.Names, b.Name)
 	}
 	return nil
 }
 
-func (s Server) Run(args *Arg, reply *Reply) error {
+func (s Server) Run(args *api.Arg, reply *api.Reply) error {
 	if _, ok := s.m[args.Name]; !ok {
 		return fmt.Errorf("no such benchmark: %s", args.Name)
 	}
@@ -117,7 +109,7 @@ func (s Server) Run(args *Arg, reply *Reply) error {
 	return nil
 }
 
-func (s Server) Quit(args *Arg, reply *Reply) error {
+func (s Server) Quit(args *api.Arg, reply *api.Reply) error {
 	os.Exit(0)
 	return nil
 }
